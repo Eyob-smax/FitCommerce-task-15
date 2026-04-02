@@ -58,7 +58,6 @@ pnpm-debug.log*
 # Conversion outputs and generated artifacts
 trajectory*.json
 sessions/trajectory-*.json
-sessions/session-1.jsonl
-sessions/session.jsonl
+
 
 **/converted/
