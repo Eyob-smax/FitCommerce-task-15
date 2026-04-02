@@ -57,7 +57,7 @@ if [ "$RUN_BACKEND" = true ]; then
 
   # Parse coverage from the output file written by the test container
   if [ -f ".coverage/backend.txt" ]; then
-    BACKEND_COVERAGE=$(grep -oP 'coverage: \K[0-9]+\.[0-9]+' .coverage/backend.txt | tail -1 || echo "0")
+    BACKEND_COVERAGE=$(grep -oP '[0-9]+\.[0-9]+(?=%)' .coverage/backend.txt | tail -1 || echo "0")
     echo "Backend coverage: ${BACKEND_COVERAGE}%"
   fi
 fi
@@ -95,7 +95,7 @@ check_coverage() {
   local name="$1"
   local actual="$2"
   local threshold="$3"
-  if (( $(echo "$actual < $threshold" | bc -l) )); then
+  if awk "BEGIN {exit !($actual < $threshold)}"; then
     echo "  FAIL: $name coverage ${actual}% is below threshold ${threshold}%"
     FAILED=true
   else

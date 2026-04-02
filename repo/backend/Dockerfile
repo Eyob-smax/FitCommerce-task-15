@@ -3,6 +3,9 @@ FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
+# Required for CGO/race builds in the backend-test container.
+RUN apk add --no-cache gcc musl-dev
+
 # Download deps (separate layer — cached unless go.mod changes)
 COPY go.mod ./
 ENV GONOSUMDB=*

@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -15,6 +17,8 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog"
 
+	appdb "fitcommerce/backend/database"
+	dbseeds "fitcommerce/backend/database/seeds"
 	"fitcommerce/backend/internal/auth"
 	"fitcommerce/backend/internal/config"
 	appRouter "fitcommerce/backend/internal/http/router"
@@ -26,6 +30,11 @@ type testEnv struct {
 	DB     *pgxpool.Pool
 	JWT    *auth.Manager
 }
+
+var (
+	testDBInitOnce sync.Once
+	testDBInitErr  error
+)
 
 // setupRouter builds a real Gin engine backed by the test database.
 // When DATABASE_URL env var is set (CI / Docker) failures are hard errors.
@@ -61,6 +70,15 @@ func setupRouter(t *testing.T) *testEnv {
 		}
 		t.Skipf("cannot ping test DB (skipping integration test): %v", err)
 	}
+
+	if err := initTestDB(ctx, cfg, pool); err != nil {
+		pool.Close()
+		if inCI {
+			t.Fatalf("cannot initialize test DB: %v", err)
+		}
+		t.Skipf("cannot initialize test DB (skipping integration test): %v", err)
+	}
+
 	t.Cleanup(func() { pool.Close() })
 
 	rdbOpts, err := redis.ParseURL(cfg.Redis.URL)
@@ -76,6 +94,20 @@ func setupRouter(t *testing.T) *testEnv {
 	r := appRouter.New(cfg, pool, rdb, jwtMgr, &log)
 
 	return &testEnv{Router: r, DB: pool, JWT: jwtMgr}
+}
+
+func initTestDB(ctx context.Context, cfg *config.Config, pool *pgxpool.Pool) error {
+	testDBInitOnce.Do(func() {
+		if err := appdb.RunMigrations(cfg.DB.URL); err != nil {
+			testDBInitErr = fmt.Errorf("run migrations: %w", err)
+			return
+		}
+		if err := dbseeds.Run(ctx, pool); err != nil {
+			testDBInitErr = fmt.Errorf("run seeds: %w", err)
+		}
+	})
+
+	return testDBInitErr
 }
 
 func testConfig() *config.Config {

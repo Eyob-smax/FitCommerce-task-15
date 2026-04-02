@@ -33,7 +33,7 @@ services:
     working_dir: /app
     command: >
       sh -c "
-        go test -race -coverprofile=/coverage/backend.out ./... &&
+        CGO_ENABLED=1 go test -race -coverprofile=/coverage/backend.out ./... &&
         go tool cover -func=/coverage/backend.out | tail -1 | tee /coverage/backend.txt
       "
     environment:
