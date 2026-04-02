@@ -1,0 +1,61 @@
+# OS and editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*.orig
+*.bak
+.vscode/
+.idea/
+
+# Temp files and folders
+.tmp/
+tmp/
+*.tmp
+
+# Environment and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / frontend
+**/node_modules/
+**/dist/
+**/build/
+**/.vite/
+**/coverage/
+**/*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Go
+**/bin/
+**/*.test
+**/*.prof
+**/coverage.out
+
+# Conversion outputs and generated artifacts
+trajectory*.json
+sessions/trajectory-*.json
+**/converted/
